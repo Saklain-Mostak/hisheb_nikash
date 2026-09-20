@@ -26,6 +26,19 @@ void main() {
     test('formats negative amounts correctly without showSign flag', () {
       expect(CurrencyFormatter.format(-250.0, symbol: '৳'), '-৳ 250');
     });
+
+    test('formats suffix currencies correctly based on currency conventions', () {
+      expect(CurrencyFormatter.format(2450.0, symbol: '€'), '2,450 €');
+      expect(CurrencyFormatter.format(100.0, symbol: '﷼'), '100 ﷼');
+      expect(CurrencyFormatter.format(50.0, symbol: 'د.إ'), '50 د.إ');
+      expect(CurrencyFormatter.format(-120.0, symbol: '€'), '-120 €');
+      expect(CurrencyFormatter.format(300.0, symbol: '€', showSign: true), '+300 €');
+    });
+
+    test('formatNumber returns clean numeric string without currency symbols', () {
+      expect(CurrencyFormatter.formatNumber(12500.0), '12,500');
+      expect(CurrencyFormatter.formatNumber(12500.75), '12,500.75');
+    });
   });
 
   group('DateFormatter Tests', () {
