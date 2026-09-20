@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
@@ -134,16 +135,9 @@ class SettingsScreen extends ConsumerWidget {
                       child: const Icon(Icons.cloud_upload_outlined, color: Colors.blue, size: 20),
                     ),
                     title: const Text('Backup Data', style: TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Export data to JSON file'),
+                    subtitle: const Text('Save to SD card, internal storage, or share'),
                     trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () async {
-                      final success = await ref.read(settingsViewModelProvider.notifier).exportBackup();
-                      if (context.mounted && success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Backup ready for sharing/saving.')),
-                        );
-                      }
-                    },
+                    onTap: () => _handleBackup(context, ref),
                   ),
                   const Divider(height: 1, indent: 56),
 
@@ -158,7 +152,7 @@ class SettingsScreen extends ConsumerWidget {
                       child: const Icon(Icons.cloud_download_outlined, color: Colors.green, size: 20),
                     ),
                     title: const Text('Restore Data', style: TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Import JSON backup file'),
+                    subtitle: const Text('Restore from SD card, internal storage, or paste JSON'),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => _handleRestore(context, ref),
                   ),
@@ -215,14 +209,35 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   ListTile(
                     leading: Container(
-                      padding: const EdgeInsets.all(8),
+                      width: 50,
+                      height: 50,
+                      padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
-                        color: Colors.purple.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkBorder
+                              : AppColors.lightBorder,
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: const Icon(Icons.info_outline_rounded, color: Colors.purple, size: 20),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          AppConstants.appLogoPath,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     ),
-                    title: const Text('About Hisheb', style: TextStyle(fontWeight: FontWeight.w600)),
+                    title: const Text('About Hishab Nikash', style: TextStyle(fontWeight: FontWeight.w600)),
                     subtitle: const Text('Version 1.0.0 • 100% Offline & Private'),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => _showAboutDialog(context),
@@ -351,37 +366,306 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleRestore(BuildContext context, WidgetRef ref) async {
-    // Show option: Pick file or paste JSON
-    final choice = await showDialog<String>(
+  Future<void> _handleBackup(BuildContext context, WidgetRef ref) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final choice = await showModalBottomSheet<String>(
       context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Restore Backup', style: TextStyle(fontWeight: FontWeight.bold)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        children: [
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, 'file'),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: const Row(
-              children: [
-                Icon(Icons.file_open_rounded, color: AppColors.primary),
-                SizedBox(width: 14),
-                Text('Select JSON File', style: TextStyle(fontWeight: FontWeight.w600)),
-              ],
-            ),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.cloud_upload_outlined, color: Colors.blue, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Export & Backup Data',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Where would you like to save your backup?',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.lightTextSecondary,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildOptionTile(
+                context,
+                icon: Icons.sd_card_rounded,
+                iconColor: Colors.blue,
+                title: 'Download to Storage / SD Card',
+                subtitle: 'Choose folder in SD Card or Internal Storage',
+                onTap: () => Navigator.pop(context, 'storage'),
+              ),
+              const SizedBox(height: 10),
+              _buildOptionTile(
+                context,
+                icon: Icons.share_rounded,
+                iconColor: Colors.indigo,
+                title: 'Share via Apps',
+                subtitle: 'Send JSON file via WhatsApp, Drive, Email, etc.',
+                onTap: () => Navigator.pop(context, 'share'),
+              ),
+              const SizedBox(height: 10),
+              _buildOptionTile(
+                context,
+                icon: Icons.copy_rounded,
+                iconColor: Colors.teal,
+                title: 'Copy JSON to Clipboard',
+                subtitle: 'Directly copy raw backup content',
+                onTap: () => Navigator.pop(context, 'copy'),
+              ),
+            ],
           ),
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, 'text'),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: const Row(
-              children: [
-                Icon(Icons.paste_rounded, color: AppColors.secondary),
-                SizedBox(width: 14),
-                Text('Paste JSON Content', style: TextStyle(fontWeight: FontWeight.w600)),
-              ],
+        ),
+      ),
+    );
+
+    if (choice == null || !context.mounted) return;
+
+    if (choice == 'storage') {
+      try {
+        final savedPath = await ref.read(settingsViewModelProvider.notifier).saveBackupToStorage();
+        if (savedPath != null && context.mounted) {
+          final fileName = savedPath.contains('/') ? savedPath.split('/').last : savedPath;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                fileName.isNotEmpty
+                    ? 'Backup saved: $fileName'
+                    : 'Backup saved to device storage.',
+              ),
+              backgroundColor: AppColors.income,
             ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to save backup: $e'),
+              backgroundColor: AppColors.expense,
+            ),
+          );
+        }
+      }
+    } else if (choice == 'share') {
+      try {
+        final success = await ref.read(settingsViewModelProvider.notifier).shareBackup();
+        if (success && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Backup ready for sharing.'),
+              backgroundColor: AppColors.income,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to share backup: $e'),
+              backgroundColor: AppColors.expense,
+            ),
+          );
+        }
+      }
+    } else if (choice == 'copy') {
+      final json = ref.read(settingsViewModelProvider.notifier).getBackupJson();
+      await Clipboard.setData(ClipboardData(text: json));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Backup JSON copied to clipboard.'),
+            backgroundColor: AppColors.income,
           ),
-        ],
+        );
+      }
+    }
+  }
+
+  Widget _buildOptionTile(
+    BuildContext context, {
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      color: isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, size: 20, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleRestore(BuildContext context, WidgetRef ref) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.cloud_download_outlined, color: Colors.green, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Restore Backup Data',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Select your backup file from storage or paste JSON',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.lightTextSecondary,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildOptionTile(
+                context,
+                icon: Icons.sd_card_rounded,
+                iconColor: Colors.green,
+                title: 'Select Backup File (SD Card / Storage)',
+                subtitle: 'Choose .json backup file from SD Card or Internal Storage',
+                onTap: () => Navigator.pop(context, 'file'),
+              ),
+              const SizedBox(height: 10),
+              _buildOptionTile(
+                context,
+                icon: Icons.paste_rounded,
+                iconColor: AppColors.secondary,
+                title: 'Paste JSON Content',
+                subtitle: 'Paste backup text directly if copied to clipboard',
+                onTap: () => Navigator.pop(context, 'text'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
 
@@ -461,39 +745,91 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showAboutDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Row(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+        title: Column(
           children: [
-            Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary),
-            SizedBox(width: 10),
-            Text('Hisheb', style: TextStyle(fontWeight: FontWeight.bold)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Image.asset(
+                AppConstants.appLogoPath,
+                height: 110,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              '${AppConstants.appName} (${AppConstants.appTaglineBengali})',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              AppConstants.appTagline,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+                letterSpacing: 0.3,
+              ),
+            ),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Personal Expense & Income Tracker',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: 8),
+            const Divider(height: 24),
             Text(
               '• 100% Offline & Local Storage via Hive\n'
               '• No cloud tracking or personal data collection\n'
               '• Fast expense entry designed for daily use\n'
               '• Complete financial reports and debt management\n'
-              '• Free and open local JSON backup/restore',
-              style: TextStyle(fontSize: 13, height: 1.5),
+              '• Free and open local JSON backup/restore (SD card & storage)',
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.6,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: Text(
+                'Version ${AppConstants.appVersion}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
+            style: FilledButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('Close'),
           ),
         ],

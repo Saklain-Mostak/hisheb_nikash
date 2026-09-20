@@ -1,9 +1,13 @@
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'Hisheb';
+  static const String appName = 'Hishab Nikash';
+  static const String appTaglineBengali = 'হিসাব-নিকাশ';
   static const String appTagline = 'Personal Expense & Income Tracker';
   static const String appVersion = '1.0.0';
+  static const String appLogoPath = 'assets/images/app_logo.png';
+  static const String appLogoMarkPath = 'assets/images/app_logo_mark.png';
+  static const String appLogoSquarePath = 'assets/images/app_logo.png';
 
   // Hive Box Names
   static const String transactionsBox = 'transactions_box';

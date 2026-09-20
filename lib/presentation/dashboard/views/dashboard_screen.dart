@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../viewmodels/dashboard_viewmodel.dart';
 import '../widgets/balance_card.dart';
@@ -33,40 +35,77 @@ class DashboardScreen extends ConsumerWidget {
                 // Top Header Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          state.greeting,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                          ),
+                    // Full Logo (Emblem + Hishab Nikash + হিসাব-নিকাশ)
+                    Container(
+                      height: 64,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : AppColors.lightBorder,
+                          width: 1.2,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          DateFormatter.formatDate(DateTime.now()),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: isDark
-                                ? AppColors.darkTextSecondary
-                                : AppColors.lightTextSecondary,
-                            fontWeight: FontWeight.w500,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          AppConstants.appLogoPath,
+                          fit: BoxFit.contain,
                         ),
-                      ],
+                      ),
                     ),
                     Row(
                       children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              state.greeting,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              DateFormatter.formatDate(DateTime.now()),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.lightTextSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 10),
                         // Calendar shortcut
                         IconButton.filledTonal(
                           onPressed: () => context.push('/calendar'),
-                          icon: const Icon(Icons.calendar_month_rounded, size: 20),
+                          icon: const Icon(
+                            Icons.calendar_month_rounded,
+                            size: 20,
+                          ),
                           tooltip: 'Daily History',
                           style: IconButton.styleFrom(
                             backgroundColor: isDark
-                                ? AppColors.darkSurfaceVariant
-                                : AppColors.lightSurfaceVariant,
+                                ? const Color.fromARGB(255, 109, 133, 171)
+                                : const Color.fromARGB(255, 90, 138, 187),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                             ),
