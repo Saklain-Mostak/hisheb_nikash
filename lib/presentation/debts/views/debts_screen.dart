@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
@@ -20,6 +21,7 @@ class DebtsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
     final currencySymbol = ref.watch(currencySymbolProvider);
 
     final summary = ref.watch(debtsSummaryProvider);
@@ -29,7 +31,7 @@ class DebtsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Loans & Debts', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(l10n.loansAndDebts, style: const TextStyle(fontWeight: FontWeight.w700)),
       ),
       body: SafeArea(
         child: Column(
@@ -59,7 +61,7 @@ class DebtsScreen extends ConsumerWidget {
                               const Icon(Icons.arrow_upward_rounded, size: 14, color: AppColors.lentColor),
                               const SizedBox(width: 4),
                               Text(
-                                'You will receive',
+                                l10n.youWillReceive,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -105,7 +107,7 @@ class DebtsScreen extends ConsumerWidget {
                               const Icon(Icons.arrow_downward_rounded, size: 14, color: AppColors.borrowedColor),
                               const SizedBox(width: 4),
                               Text(
-                                'You need to pay',
+                                l10n.youNeedToPay,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -141,14 +143,14 @@ class DebtsScreen extends ConsumerWidget {
                 children: [
                   // Type filter chips
                   ChoiceChip(
-                    label: const Text('All'),
+                    label: Text(l10n.filterAll),
                     selected: filter.typeFilter == null,
                     onSelected: (_) => filterNotifier.setTypeFilter(null),
                     showCheckmark: false,
                   ),
                   const SizedBox(width: 6),
                   ChoiceChip(
-                    label: const Text('I Gave (Receivable)'),
+                    label: Text(l10n.iGave),
                     selected: filter.typeFilter == DebtType.gave,
                     selectedColor: AppColors.lentContainer,
                     onSelected: (_) => filterNotifier.setTypeFilter(
@@ -158,7 +160,7 @@ class DebtsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 6),
                   ChoiceChip(
-                    label: const Text('I Received (Payable)'),
+                    label: Text(l10n.iTook),
                     selected: filter.typeFilter == DebtType.received,
                     selectedColor: AppColors.borrowedContainer,
                     onSelected: (_) => filterNotifier.setTypeFilter(
@@ -172,14 +174,18 @@ class DebtsScreen extends ConsumerWidget {
                   PopupMenuButton<DebtStatus?>(
                     onSelected: filterNotifier.setStatusFilter,
                     itemBuilder: (context) => [
-                      const PopupMenuItem(value: null, child: Text('Status: All')),
+                      PopupMenuItem(value: null, child: Text(l10n.statusAll)),
                       ...DebtStatus.values.map(
-                        (s) => PopupMenuItem(value: s, child: Text(s.displayName)),
+                        (s) => PopupMenuItem(value: s, child: Text(l10n.getDebtStatusName(s))),
                       ),
                     ],
                     child: Chip(
                       avatar: const Icon(Icons.filter_list_rounded, size: 16),
-                      label: Text(filter.statusFilter?.displayName ?? 'Status: All'),
+                      label: Text(
+                        filter.statusFilter != null
+                            ? l10n.getDebtStatusName(filter.statusFilter!)
+                            : l10n.statusAll,
+                      ),
                     ),
                   ),
                 ],
@@ -193,9 +199,9 @@ class DebtsScreen extends ConsumerWidget {
                   ? Center(
                       child: EmptyStateView(
                         icon: Icons.handshake_outlined,
-                        title: 'No loans or debts',
-                        message: 'Keep track of money you lent or borrowed with due dates and partial payments.',
-                        actionLabel: 'Add Loan / Debt',
+                        title: l10n.noLoansOrDebts,
+                        message: l10n.noLoansOrDebtsSub,
+                        actionLabel: l10n.addLoanDebt,
                         onAction: () => context.push('/debt/add'),
                       ),
                     )
@@ -215,7 +221,7 @@ class DebtsScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/debt/add'),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Debt', style: TextStyle(fontWeight: FontWeight.w700)),
+        label: Text(l10n.addDebt, style: const TextStyle(fontWeight: FontWeight.w700)),
         backgroundColor: isDark ? AppColors.primaryLight : AppColors.primary,
         foregroundColor: isDark ? Colors.black : Colors.white,
       ),
@@ -236,6 +242,7 @@ class _DebtCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
     final isGave = debt.type == DebtType.gave;
     final typeColor = isGave ? AppColors.lentColor : AppColors.borrowedColor;
 
@@ -274,7 +281,7 @@ class _DebtCard extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        debt.type.displayName,
+                        l10n.getDebtTypeName(debt.type),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -295,7 +302,7 @@ class _DebtCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      debt.status.displayName,
+                      l10n.getDebtStatusName(debt.status),
                       style: TextStyle(
                         color: debt.status.badgeColor,
                         fontSize: 11,
@@ -311,9 +318,10 @@ class _DebtCard extends ConsumerWidget {
                       } else if (val == 'delete') {
                         final confirmed = await ConfirmDialog.show(
                           context,
-                          title: 'Delete Debt?',
-                          message: 'Are you sure you want to delete this loan record for "${debt.personName}"?',
-                          confirmLabel: 'Delete',
+                          title: l10n.deleteDebt,
+                          message: l10n.confirmDeleteDebt,
+                          confirmLabel: l10n.delete,
+                          cancelLabel: l10n.cancel,
                           isDestructive: true,
                         );
                         if (confirmed) {
@@ -321,11 +329,11 @@ class _DebtCard extends ConsumerWidget {
                         }
                       }
                     },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
                       PopupMenuItem(
                         value: 'delete',
-                        child: Text('Delete', style: TextStyle(color: AppColors.expense)),
+                        child: Text(l10n.delete, style: const TextStyle(color: AppColors.expense)),
                       ),
                     ],
                   ),
@@ -343,7 +351,7 @@ class _DebtCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Remaining Due',
+                    l10n.remainingDue,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -364,7 +372,7 @@ class _DebtCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'Total Amount',
+                    l10n.totalAmount,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -398,7 +406,7 @@ class _DebtCard extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Paid: ${CurrencyFormatter.format(debt.paidAmount, symbol: currencySymbol)}',
+              '${l10n.paid}: ${CurrencyFormatter.format(debt.paidAmount, symbol: currencySymbol)}',
               style: TextStyle(
                 fontSize: 11,
                 color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
@@ -417,7 +425,7 @@ class _DebtCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Given: ${DateFormatter.formatDate(debt.date)}',
+                    '${l10n.given}: ${DateFormatter.formatDate(debt.date)}',
                     style: TextStyle(
                       fontSize: 11,
                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -425,7 +433,7 @@ class _DebtCard extends ConsumerWidget {
                   ),
                   if (debt.dueDate != null)
                     Text(
-                      'Due: ${DateFormatter.formatDate(debt.dueDate!)}',
+                      '${l10n.due}: ${DateFormatter.formatDate(debt.dueDate!)}',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -445,7 +453,7 @@ class _DebtCard extends ConsumerWidget {
                     visualDensity: VisualDensity.compact,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Record Payment', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  child: Text(l10n.recordPayment, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 ),
             ],
           ),

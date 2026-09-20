@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/utils/currency_formatter.dart';
@@ -69,7 +70,9 @@ class TransactionTile extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    category?.name ?? 'Unknown',
+                    category != null
+                        ? context.l10n.getCategoryName(category.name, category.id)
+                        : context.l10n.none,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -101,7 +104,7 @@ class TransactionTile extends ConsumerWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        transaction.paymentMethod.displayName,
+                        context.l10n.getPaymentMethodName(transaction.paymentMethod),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: isDark
                               ? AppColors.darkTextMuted

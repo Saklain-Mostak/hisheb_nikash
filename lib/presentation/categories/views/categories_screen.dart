@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/widgets/app_card.dart';
@@ -16,6 +17,7 @@ class CategoriesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     final expenseList = ref.watch(expenseCategoriesProvider);
     final incomeList = ref.watch(incomeCategoriesProvider);
@@ -24,15 +26,15 @@ class CategoriesScreen extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Categories', style: TextStyle(fontWeight: FontWeight.w700)),
+          title: Text(l10n.categories, style: const TextStyle(fontWeight: FontWeight.w700)),
           bottom: TabBar(
             indicatorColor: isDark ? AppColors.primaryLight : AppColors.primary,
             labelColor: isDark ? AppColors.primaryLight : AppColors.primary,
             unselectedLabelColor: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
             indicatorWeight: 3,
-            tabs: const [
-              Tab(text: 'Expense Categories'),
-              Tab(text: 'Income Categories'),
+            tabs: [
+              Tab(text: l10n.expenseCategories),
+              Tab(text: l10n.incomeCategories),
             ],
           ),
         ),
@@ -50,7 +52,7 @@ class CategoriesScreen extends ConsumerWidget {
               AddEditCategoryDialog.show(context, defaultType: type);
             },
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Add Category', style: TextStyle(fontWeight: FontWeight.w700)),
+            label: Text(l10n.addCategory, style: const TextStyle(fontWeight: FontWeight.w700)),
             backgroundColor: isDark ? AppColors.primaryLight : AppColors.primary,
             foregroundColor: isDark ? Colors.black : Colors.white,
           ),
@@ -73,11 +75,12 @@ class _CategoryListView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     if (categories.isEmpty) {
       return Center(
         child: Text(
-          'No ${type.displayName.toLowerCase()} categories found.',
+          l10n.noCategoriesFound,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
           ),
@@ -113,7 +116,7 @@ class _CategoryListView extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      cat.name,
+                      l10n.getCategoryName(cat.name, cat.id),
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
@@ -121,7 +124,7 @@ class _CategoryListView extends ConsumerWidget {
                     ),
                     if (cat.isDefault)
                       Text(
-                        'Default',
+                        l10n.defaultLabel,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                           fontSize: 11,
@@ -132,20 +135,21 @@ class _CategoryListView extends ConsumerWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
+                tooltip: l10n.edit,
                 onPressed: () {
                   AddEditCategoryDialog.show(context, existingCategory: cat);
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.expense),
-                tooltip: 'Delete',
+                tooltip: l10n.delete,
                 onPressed: () async {
                   final confirmed = await ConfirmDialog.show(
                     context,
-                    title: 'Delete Category?',
-                    message: 'Are you sure you want to delete "${cat.name}"? Categories with existing transactions cannot be deleted.',
-                    confirmLabel: 'Delete',
+                    title: l10n.deleteCategory,
+                    message: '${l10n.confirmDeleteCategory} ${l10n.deleteCategoryMessage}',
+                    confirmLabel: l10n.delete,
+                    cancelLabel: l10n.cancel,
                     isDestructive: true,
                   );
 
@@ -155,8 +159,8 @@ class _CategoryListView extends ConsumerWidget {
                         .deleteCategory(cat.id);
                     if (!success && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Cannot delete this category because it is linked to transactions.'),
+                        SnackBar(
+                          content: Text(l10n.cannotDeleteCategoryLinked),
                           backgroundColor: AppColors.expense,
                         ),
                       );

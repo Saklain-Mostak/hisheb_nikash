@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../viewmodels/reports_viewmodel.dart';
@@ -27,13 +28,14 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     if (widget.categoryBreakdown.isEmpty || widget.totalExpense <= 0) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
           child: Text(
-            'No expense data for this month',
+            l10n.noDataForPeriod,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
             ),
@@ -95,7 +97,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Total Expense',
+                    l10n.totalExpense,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -138,7 +140,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  '${item.category.name} (${item.percentage.toStringAsFixed(0)}%)',
+                  '${l10n.getCategoryName(item.category.name, item.category.id)} (${item.percentage.toStringAsFixed(0)}%)',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

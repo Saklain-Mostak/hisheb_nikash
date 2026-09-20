@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../data/models/debt_model.dart';
@@ -60,6 +61,7 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
     final currencySymbol = ref.watch(currencySymbolProvider);
     final isEditing = widget.existingDebt != null;
 
@@ -68,7 +70,7 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          isEditing ? 'Edit Debt / Loan' : 'Add Debt / Loan',
+          isEditing ? l10n.editDebtTitle : l10n.addDebtTitle,
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -92,8 +94,8 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                         children: [
                           Expanded(
                             child: _DebtTypeChip(
-                              label: 'Money I gave',
-                              sublabel: '(You will receive)',
+                              label: l10n.moneyIGave,
+                              sublabel: l10n.youWillReceiveSub,
                               isSelected: _type == DebtType.gave,
                               activeColor: AppColors.lentColor,
                               onTap: () => setState(() => _type = DebtType.gave),
@@ -101,8 +103,8 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                           ),
                           Expanded(
                             child: _DebtTypeChip(
-                              label: 'Money I received',
-                              sublabel: '(You need to pay)',
+                              label: l10n.moneyIReceived,
+                              sublabel: l10n.youNeedToPaySub,
                               isSelected: _type == DebtType.received,
                               activeColor: AppColors.borrowedColor,
                               onTap: () => setState(() => _type = DebtType.received),
@@ -116,10 +118,10 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                     // Person Name Input
                     TextField(
                       controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Person Name *',
-                        hintText: 'e.g. Rahim, John Doe, Store',
-                        prefixIcon: Icon(Icons.person_outline_rounded),
+                      decoration: InputDecoration(
+                        labelText: l10n.personNameLabel,
+                        hintText: l10n.personNameHint,
+                        prefixIcon: const Icon(Icons.person_outline_rounded),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -132,7 +134,7 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                       ],
                       decoration: InputDecoration(
-                        labelText: 'Total Amount *',
+                        labelText: '${l10n.totalAmount} *',
                         prefixText: '$currencySymbol ',
                         prefixIcon: const Icon(Icons.payments_outlined),
                       ),
@@ -168,7 +170,7 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Date',
+                                    l10n.date,
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -215,7 +217,7 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        'Due Date (Opt)',
+                                        l10n.dueDateOptional,
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -230,7 +232,7 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    _dueDate != null ? DateFormatter.formatDate(_dueDate!) : 'Not set',
+                                    _dueDate != null ? DateFormatter.formatDate(_dueDate!) : l10n.notSet,
                                     style: TextStyle(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 13,
@@ -249,10 +251,10 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                     // Note Input
                     TextField(
                       controller: _noteController,
-                      decoration: const InputDecoration(
-                        labelText: 'Note (Optional)',
-                        hintText: 'Add description or purpose',
-                        prefixIcon: Icon(Icons.notes_rounded),
+                      decoration: InputDecoration(
+                        labelText: l10n.noteOptional,
+                        hintText: l10n.noteHint,
+                        prefixIcon: const Icon(Icons.notes_rounded),
                       ),
                       maxLines: 2,
                     ),
@@ -296,11 +298,11 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                         final amount = double.tryParse(_amountController.text);
 
                         if (personName.isEmpty) {
-                          setState(() => _errorMessage = 'Please enter the person name');
+                          setState(() => _errorMessage = l10n.personNameRequired);
                           return;
                         }
                         if (amount == null || amount <= 0) {
-                          setState(() => _errorMessage = 'Please enter a valid amount greater than 0');
+                          setState(() => _errorMessage = l10n.enterAmountGreaterThanZero);
                           return;
                         }
 
@@ -351,7 +353,7 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                   minimumSize: const Size(double.infinity, 54),
                 ),
                 child: Text(
-                  isEditing ? 'Update Loan' : 'Save Loan',
+                  isEditing ? l10n.updateLoan : l10n.saveLoan,
                   style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                 ),
               ),

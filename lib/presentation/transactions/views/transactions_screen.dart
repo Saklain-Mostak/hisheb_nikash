@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/widgets/app_card.dart';
@@ -36,6 +37,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
     final currencySymbol = ref.watch(currencySymbolProvider);
 
     final filter = ref.watch(transactionFilterProvider);
@@ -45,12 +47,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transactions', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(l10n.transactions, style: const TextStyle(fontWeight: FontWeight.w700)),
         actions: [
           // Sort Menu
           PopupMenuButton<TransactionSortOrder>(
             icon: const Icon(Icons.sort_rounded),
-            tooltip: 'Sort by',
+            tooltip: l10n.sortBy,
             onSelected: filterNotifier.setSortOrder,
             itemBuilder: (context) => TransactionSortOrder.values.map((order) {
               return PopupMenuItem(
@@ -62,7 +64,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     else
                       const SizedBox(width: 18),
                     const SizedBox(width: 10),
-                    Text(order.displayName),
+                    Text(l10n.getSortOrderName(order)),
                   ],
                 ),
               );
@@ -71,7 +73,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           if (filter.hasActiveFilters)
             IconButton(
               icon: const Icon(Icons.filter_alt_off_rounded),
-              tooltip: 'Reset filters',
+              tooltip: l10n.resetFilters,
               onPressed: () {
                 _searchController.clear();
                 filterNotifier.resetFilters();
@@ -89,7 +91,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 controller: _searchController,
                 onChanged: filterNotifier.setSearchQuery,
                 decoration: InputDecoration(
-                  hintText: 'Search note, category, amount...',
+                  hintText: l10n.searchTransactions,
                   prefixIcon: const Icon(Icons.search_rounded),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
@@ -114,14 +116,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 children: [
                   // Type filter: All / Expense / Income
                   FilterChip(
-                    label: const Text('All'),
+                    label: Text(l10n.filterAll),
                     selected: filter.typeFilter == null,
                     onSelected: (_) => filterNotifier.setTypeFilter(null),
                     showCheckmark: false,
                   ),
                   const SizedBox(width: 6),
                   FilterChip(
-                    label: const Text('Expense'),
+                    label: Text(l10n.filterExpense),
                     selected: filter.typeFilter == TransactionType.expense,
                     selectedColor: AppColors.expenseLight,
                     onSelected: (_) => filterNotifier.setTypeFilter(
@@ -131,7 +133,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   ),
                   const SizedBox(width: 6),
                   FilterChip(
-                    label: const Text('Income'),
+                    label: Text(l10n.filterIncome),
                     selected: filter.typeFilter == TransactionType.income,
                     selectedColor: AppColors.incomeLight,
                     onSelected: (_) => filterNotifier.setTypeFilter(
@@ -145,7 +147,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   PopupMenuButton<DateFilterPreset>(
                     child: Chip(
                       avatar: const Icon(Icons.date_range_rounded, size: 16),
-                      label: Text(filter.datePreset.displayName),
+                      label: Text(l10n.getDatePresetName(filter.datePreset)),
                       backgroundColor: filter.datePreset != DateFilterPreset.all
                           ? (isDark ? AppColors.primaryContainerDark : AppColors.primaryContainerLight)
                           : null,
@@ -167,7 +169,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     itemBuilder: (context) => DateFilterPreset.values.map((preset) {
                       return PopupMenuItem(
                         value: preset,
-                        child: Text(preset.displayName),
+                        child: Text(l10n.getDatePresetName(preset)),
                       );
                     }).toList(),
                   ),
@@ -177,14 +179,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   PopupMenuButton<String?>(
                     onSelected: filterNotifier.setCategoryFilter,
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: null,
-                        child: Text('All Categories'),
+                        child: Text(l10n.allCategories),
                       ),
                       ...allCategories.map(
                         (cat) => PopupMenuItem(
                           value: cat.id,
-                          child: Text(cat.name),
+                          child: Text(l10n.getCategoryName(cat.name, cat.id)),
                         ),
                       ),
                     ],
@@ -194,10 +196,13 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         filter.categoryIdFilter != null
                             ? (allCategories
                                     .where((c) => c.id == filter.categoryIdFilter)
-                                    .firstOrNull
-                                    ?.name ??
-                                'Category')
-                            : 'Category',
+                                    .firstOrNull != null
+                                ? l10n.getCategoryName(
+                                    allCategories.firstWhere((c) => c.id == filter.categoryIdFilter).name,
+                                    filter.categoryIdFilter,
+                                  )
+                                : l10n.category)
+                            : l10n.category,
                       ),
                       backgroundColor: filter.categoryIdFilter != null
                           ? (isDark ? AppColors.primaryContainerDark : AppColors.primaryContainerLight)
@@ -210,21 +215,23 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   PopupMenuButton<PaymentMethod?>(
                     onSelected: filterNotifier.setPaymentMethodFilter,
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: null,
-                        child: Text('All Methods'),
+                        child: Text(l10n.allMethods),
                       ),
                       ...PaymentMethod.values.map(
                         (m) => PopupMenuItem(
                           value: m,
-                          child: Text(m.displayName),
+                          child: Text(l10n.getPaymentMethodName(m)),
                         ),
                       ),
                     ],
                     child: Chip(
                       avatar: const Icon(Icons.payments_outlined, size: 16),
                       label: Text(
-                        filter.paymentMethodFilter?.displayName ?? 'Payment Method',
+                        filter.paymentMethodFilter != null
+                            ? l10n.getPaymentMethodName(filter.paymentMethodFilter!)
+                            : l10n.paymentMethod,
                       ),
                       backgroundColor: filter.paymentMethodFilter != null
                           ? (isDark ? AppColors.primaryContainerDark : AppColors.primaryContainerLight)
@@ -242,11 +249,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 ? Center(
                     child: EmptyStateView(
                       icon: Icons.search_off_rounded,
-                      title: 'No transactions found',
+                      title: l10n.noTransactionsFound,
                       message: filter.hasActiveFilters
-                          ? 'Try clearing some of your active filters.'
-                          : 'You have not added any transactions yet.',
-                      actionLabel: filter.hasActiveFilters ? 'Reset Filters' : 'Add Transaction',
+                          ? l10n.clearFiltersMessage
+                          : l10n.noTransactionsRecorded,
+                      actionLabel: filter.hasActiveFilters ? l10n.resetFilters : l10n.addTransaction,
                       onAction: () {
                         if (filter.hasActiveFilters) {
                           _searchController.clear();
@@ -336,7 +343,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/transaction/add?type=expense'),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add', style: TextStyle(fontWeight: FontWeight.w700)),
+        label: Text(l10n.add, style: const TextStyle(fontWeight: FontWeight.w700)),
         backgroundColor: isDark ? AppColors.primaryLight : AppColors.primary,
         foregroundColor: isDark ? Colors.black : Colors.white,
       ),

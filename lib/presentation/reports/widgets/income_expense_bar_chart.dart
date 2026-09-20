@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 
@@ -19,6 +20,7 @@ class IncomeExpenseBarChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     final maxY = (totalIncome > totalExpense ? totalIncome : totalExpense);
     final effectiveMaxY = maxY > 0 ? maxY * 1.25 : 100.0;
@@ -35,7 +37,7 @@ class IncomeExpenseBarChart extends StatelessWidget {
                 enabled: true,
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                    final label = group.x == 0 ? 'Income' : 'Expense';
+                    final label = group.x == 0 ? l10n.filterIncome : l10n.filterExpense;
                     return BarTooltipItem(
                       '$label\n${CurrencyFormatter.format(rod.toY, symbol: currencySymbol)}',
                       const TextStyle(
@@ -61,12 +63,12 @@ class IncomeExpenseBarChart extends StatelessWidget {
                       if (value == 0) {
                         return Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Text('Income', style: style),
+                          child: Text(l10n.filterIncome, style: style),
                         );
                       } else if (value == 1) {
                         return Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Text('Expense', style: style),
+                          child: Text(l10n.filterExpense, style: style),
                         );
                       }
                       return const SizedBox.shrink();

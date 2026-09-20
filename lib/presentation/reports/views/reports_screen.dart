@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/utils/currency_formatter.dart';
@@ -17,6 +18,7 @@ class ReportsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
     final currencySymbol = ref.watch(currencySymbolProvider);
 
     final selectedMonth = ref.watch(selectedMonthProvider);
@@ -25,7 +27,7 @@ class ReportsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Monthly Report', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(l10n.monthlyReport, style: const TextStyle(fontWeight: FontWeight.w700)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -40,7 +42,7 @@ class ReportsScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.chevron_left_rounded),
+                       icon: const Icon(Icons.chevron_left_rounded),
                       onPressed: monthNotifier.previousMonth,
                     ),
                     InkWell(
@@ -103,7 +105,7 @@ class ReportsScreen extends ConsumerWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Income',
+                                l10n.filterIncome,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -148,7 +150,7 @@ class ReportsScreen extends ConsumerWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Expense',
+                                l10n.filterExpense,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -183,7 +185,7 @@ class ReportsScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Net Balance',
+                      l10n.netBalance,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -207,21 +209,21 @@ class ReportsScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     _StatRow(
-                      label: 'Top Spending Category',
+                      label: l10n.topSpendingCategory,
                       value: report.highestSpendingCategory != null
-                          ? '${report.highestSpendingCategory!.category.name} (${CurrencyFormatter.format(report.highestSpendingCategory!.totalAmount, symbol: currencySymbol)})'
-                          : 'None',
+                          ? '${l10n.getCategoryName(report.highestSpendingCategory!.category.name, report.highestSpendingCategory!.category.id)} (${CurrencyFormatter.format(report.highestSpendingCategory!.totalAmount, symbol: currencySymbol)})'
+                          : l10n.none,
                     ),
                     const Divider(height: 18),
                     _StatRow(
-                      label: 'Highest Single Expense',
+                      label: l10n.highestExpense,
                       value: report.highestExpense != null
                           ? CurrencyFormatter.format(report.highestExpense!.amount, symbol: currencySymbol)
-                          : 'None',
+                          : l10n.none,
                     ),
                     const Divider(height: 18),
                     _StatRow(
-                      label: 'Number of Transactions',
+                      label: l10n.numberOfTransactions,
                       value: '${report.transactionCount}',
                     ),
                   ],
@@ -231,7 +233,7 @@ class ReportsScreen extends ConsumerWidget {
 
               // Category Breakdown Chart Card
               Text(
-                'Expense by Category',
+                l10n.expenseByCategory,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -249,7 +251,7 @@ class ReportsScreen extends ConsumerWidget {
 
               // Income vs Expense Bar Chart Card
               Text(
-                'Income vs Expense',
+                l10n.incomeVsExpense,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -268,7 +270,7 @@ class ReportsScreen extends ConsumerWidget {
               // Top Spending Categories List
               if (report.categoryBreakdown.isNotEmpty) ...[
                 Text(
-                  'Top Spending Breakdown',
+                  l10n.topSpendingBreakdown,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -306,11 +308,11 @@ class ReportsScreen extends ConsumerWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      item.category.name,
+                                      l10n.getCategoryName(item.category.name, item.category.id),
                                       style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                                     ),
                                     Text(
-                                      '${item.transactionCount} transactions',
+                                      '${item.transactionCount} ${l10n.transactionsCount}',
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,

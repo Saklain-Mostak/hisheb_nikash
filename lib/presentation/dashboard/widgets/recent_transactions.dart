@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../viewmodels/dashboard_viewmodel.dart';
@@ -15,6 +16,7 @@ class RecentTransactions extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final state = ref.watch(dashboardViewModelProvider);
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -23,7 +25,7 @@ class RecentTransactions extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recent Transactions',
+              l10n.recentTransactions,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -38,7 +40,7 @@ class RecentTransactions extends ConsumerWidget {
                 child: Row(
                   children: [
                     Text(
-                      'See All',
+                      l10n.viewAll,
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         color: isDark ? AppColors.primaryLight : AppColors.primary,
@@ -62,9 +64,9 @@ class RecentTransactions extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
             child: EmptyStateView(
               icon: Icons.receipt_long_outlined,
-              title: 'No transactions yet',
-              message: 'Quickly record an expense or income to track your hisheb daily.',
-              actionLabel: 'Add First Transaction',
+              title: l10n.noTransactionsYet,
+              message: l10n.startAddingTransactions,
+              actionLabel: l10n.addTransaction,
               onAction: () => context.push('/transaction/add?type=expense'),
             ),
           )

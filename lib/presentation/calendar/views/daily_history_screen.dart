@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
@@ -17,6 +18,7 @@ class DailyHistoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
     final currencySymbol = ref.watch(currencySymbolProvider);
 
     final history = ref.watch(dailyHistoryProvider);
@@ -24,7 +26,7 @@ class DailyHistoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Daily History', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(l10n.dailyHistory, style: const TextStyle(fontWeight: FontWeight.w700)),
       ),
       body: SafeArea(
         child: Column(
@@ -40,7 +42,7 @@ class DailyHistoryScreen extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.chevron_left_rounded),
                       onPressed: dateNotifier.previousDay,
-                      tooltip: 'Previous Day',
+                      tooltip: l10n.previousDay,
                     ),
                     InkWell(
                       onTap: () async {
@@ -71,7 +73,7 @@ class DailyHistoryScreen extends ConsumerWidget {
                                 ),
                                 Text(
                                   DateFormatter.isSameDay(history.selectedDate, DateTime.now())
-                                      ? 'Today'
+                                      ? l10n.today
                                       : DateFormatter.formatDayOfWeek(history.selectedDate),
                                   style: TextStyle(
                                     fontSize: 12,
@@ -87,7 +89,7 @@ class DailyHistoryScreen extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.chevron_right_rounded),
                       onPressed: dateNotifier.nextDay,
-                      tooltip: 'Next Day',
+                      tooltip: l10n.nextDay,
                     ),
                   ],
                 ),
@@ -107,7 +109,7 @@ class DailyHistoryScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Income',
+                            l10n.filterIncome,
                             style: TextStyle(
                               fontSize: 12,
                               color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -139,7 +141,7 @@ class DailyHistoryScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Expense',
+                              l10n.filterExpense,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -172,7 +174,7 @@ class DailyHistoryScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Balance',
+                              l10n.netBalance,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -204,9 +206,9 @@ class DailyHistoryScreen extends ConsumerWidget {
                   ? Center(
                       child: EmptyStateView(
                         icon: Icons.event_busy_rounded,
-                        title: 'No transactions on this date',
-                        message: 'Quickly record an expense or income for ${DateFormatter.formatShortDate(history.selectedDate)}.',
-                        actionLabel: 'Add Transaction',
+                        title: l10n.noTransactionsOnDate,
+                        message: l10n.noTransactionsOnDateSub,
+                        actionLabel: l10n.addTransaction,
                         onAction: () => context.push('/transaction/add?type=expense'),
                       ),
                     )

@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/date_formatter.dart';
-import '../viewmodels/dashboard_viewmodel.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/quick_actions.dart';
 import '../widgets/recent_transactions.dart';
@@ -13,11 +13,18 @@ import '../widgets/recent_transactions.dart';
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
+  String _getGreeting(BuildContext context) {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return context.l10n.greetingMorning;
+    if (hour < 17) return context.l10n.greetingAfternoon;
+    return context.l10n.greetingEvening;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final state = ref.watch(dashboardViewModelProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
       body: SafeArea(
@@ -75,7 +82,7 @@ class DashboardScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              state.greeting,
+                              _getGreeting(context),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: -0.3,
@@ -101,7 +108,7 @@ class DashboardScreen extends ConsumerWidget {
                             Icons.calendar_month_rounded,
                             size: 20,
                           ),
-                          tooltip: 'Daily History',
+                          tooltip: l10n.dailyHistory,
                           style: IconButton.styleFrom(
                             backgroundColor: isDark
                                 ? const Color.fromARGB(255, 109, 133, 171)

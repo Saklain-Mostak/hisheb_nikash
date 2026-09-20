@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../data/models/category_model.dart';
@@ -63,6 +64,7 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
     final isEditing = widget.existingCategory != null;
 
     return Dialog(
@@ -76,7 +78,7 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isEditing ? 'Edit Category' : 'New Category',
+                isEditing ? l10n.editCategory : l10n.newCategory,
                 style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 18),
@@ -86,8 +88,8 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
                 controller: _nameController,
                 autofocus: !isEditing,
                 decoration: InputDecoration(
-                  labelText: 'Category Name',
-                  hintText: 'e.g. Groceries, Gym',
+                  labelText: l10n.categoryNameLabel,
+                  hintText: l10n.categoryNameHint,
                   prefixIcon: Icon(
                     AppIcons.getIconData(_selectedIconCodePoint),
                     color: Color(_selectedColorValue),
@@ -98,13 +100,13 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
 
               // Type Selector
               if (!isEditing) ...[
-                Text('Type', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                Text(l10n.type, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: ChoiceChip(
-                        label: const Center(child: Text('Expense')),
+                        label: Center(child: Text(l10n.filterExpense)),
                         selected: _type == TransactionType.expense,
                         selectedColor: AppColors.expenseLight,
                         onSelected: (_) => setState(() => _type = TransactionType.expense),
@@ -114,7 +116,7 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: ChoiceChip(
-                        label: const Center(child: Text('Income')),
+                        label: Center(child: Text(l10n.filterIncome)),
                         selected: _type == TransactionType.income,
                         selectedColor: AppColors.incomeLight,
                         onSelected: (_) => setState(() => _type = TransactionType.income),
@@ -127,7 +129,7 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
               ],
 
               // Icon Picker
-              Text('Select Icon', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+              Text(l10n.selectIcon, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               SizedBox(
                 height: 120,
@@ -172,7 +174,7 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
               const SizedBox(height: 16),
 
               // Color Picker
-              Text('Select Color', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+              Text(l10n.selectColor, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               SizedBox(
                 height: 40,
@@ -211,7 +213,9 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
 
               if (_errorMessage != null) ...[
                 Text(
-                  _errorMessage!,
+                  _errorMessage == 'Category name cannot be empty'
+                      ? l10n.categoryNameEmpty
+                      : _errorMessage!,
                   style: const TextStyle(color: AppColors.expense, fontSize: 13, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
@@ -223,7 +227,7 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
+                    child: Text(l10n.cancel),
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
@@ -260,7 +264,7 @@ class _AddEditCategoryDialogState extends ConsumerState<AddEditCategoryDialog> {
                       backgroundColor: Color(_selectedColorValue),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(isEditing ? 'Save Changes' : 'Create Category'),
+                    child: Text(isEditing ? l10n.saveChanges : l10n.createCategory),
                   ),
                 ],
               ),

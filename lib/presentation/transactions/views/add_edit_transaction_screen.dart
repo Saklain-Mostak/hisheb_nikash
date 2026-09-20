@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/utils/date_formatter.dart';
@@ -61,6 +62,7 @@ class _AddEditTransactionScreenState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
     final currencySymbol = ref.watch(currencySymbolProvider);
 
     final providerKey = (widget.initialType, widget.existingTransaction);
@@ -78,7 +80,7 @@ class _AddEditTransactionScreenState
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          state.isEditing ? 'Edit Transaction' : 'Add Transaction',
+          state.isEditing ? l10n.editTransaction : l10n.addTransaction,
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         leading: IconButton(
@@ -108,7 +110,7 @@ class _AddEditTransactionScreenState
                         children: [
                           Expanded(
                             child: _TypeButton(
-                              label: 'Expense',
+                              label: l10n.filterExpense,
                               icon: Icons.remove_circle_outline_rounded,
                               isSelected: state.type == TransactionType.expense,
                               activeColor: AppColors.expense,
@@ -117,7 +119,7 @@ class _AddEditTransactionScreenState
                           ),
                           Expanded(
                             child: _TypeButton(
-                              label: 'Income',
+                              label: l10n.filterIncome,
                               icon: Icons.add_circle_outline_rounded,
                               isSelected: state.type == TransactionType.income,
                               activeColor: AppColors.income,
@@ -205,7 +207,7 @@ class _AddEditTransactionScreenState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Category',
+                          l10n.category,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -213,7 +215,7 @@ class _AddEditTransactionScreenState
                         TextButton.icon(
                           onPressed: () => context.push('/categories'),
                           icon: const Icon(Icons.tune_rounded, size: 16),
-                          label: const Text('Manage', style: TextStyle(fontSize: 13)),
+                          label: Text(l10n.manage, style: const TextStyle(fontSize: 13)),
                           style: TextButton.styleFrom(
                             visualDensity: VisualDensity.compact,
                           ),
@@ -227,7 +229,7 @@ class _AddEditTransactionScreenState
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Text(
-                          'No categories found. Please add a category.',
+                          l10n.noCategoriesFound,
                           style: TextStyle(color: theme.colorScheme.error),
                         ),
                       )
@@ -251,7 +253,7 @@ class _AddEditTransactionScreenState
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  cat.name,
+                                  l10n.getCategoryName(cat.name, cat.id),
                                   style: TextStyle(
                                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                                     color: isSelected
@@ -276,7 +278,7 @@ class _AddEditTransactionScreenState
 
                     // Date & Time Row
                     Text(
-                      'Date & Time',
+                      l10n.dateTime,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -384,7 +386,7 @@ class _AddEditTransactionScreenState
 
                     // Payment Method Section
                     Text(
-                      'Payment Method',
+                      l10n.paymentMethod,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -410,7 +412,7 @@ class _AddEditTransactionScreenState
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    method.displayName,
+                                    l10n.getPaymentMethodName(method),
                                     style: TextStyle(
                                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                                       color: isSelected
@@ -436,7 +438,7 @@ class _AddEditTransactionScreenState
 
                     // Note Input Field
                     Text(
-                      'Note (Optional)',
+                      l10n.noteOptional,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -445,7 +447,7 @@ class _AddEditTransactionScreenState
                     TextField(
                       controller: _noteController,
                       decoration: InputDecoration(
-                        hintText: 'Add a note (e.g. Lunch with friends, Grocery bill)',
+                        hintText: l10n.noteHint,
                         prefixIcon: const Icon(Icons.edit_note_rounded),
                         fillColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
                       ),
@@ -470,7 +472,11 @@ class _AddEditTransactionScreenState
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                state.errorMessage!,
+                                state.errorMessage == 'Please enter a valid amount greater than 0'
+                                    ? l10n.enterValidAmount
+                                    : state.errorMessage == 'Please select a category'
+                                        ? l10n.selectCategoryError
+                                        : state.errorMessage!,
                                 style: const TextStyle(
                                   color: AppColors.expense,
                                   fontWeight: FontWeight.w600,
@@ -533,7 +539,7 @@ class _AddEditTransactionScreenState
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            state.isEditing ? 'Update Transaction' : 'Save Transaction',
+                            state.isEditing ? l10n.updateTransaction : l10n.saveTransaction,
                             style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 16,

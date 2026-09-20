@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/utils/currency_formatter.dart';
@@ -21,6 +22,7 @@ class TransactionDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final currencySymbol = ref.watch(currencySymbolProvider);
 
     final allTransactions = ref.watch(transactionsStreamProvider).value ?? [];
@@ -29,7 +31,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     if (transaction == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text('Transaction not found')),
+        body: Center(child: Text(l10n.transactionNotFound)),
       );
     }
 
@@ -43,24 +45,25 @@ class TransactionDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transaction Details', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(l10n.transactionDetails, style: const TextStyle(fontWeight: FontWeight.w700)),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Edit',
+            tooltip: l10n.edit,
             onPressed: () {
               context.push('/transaction/edit/${transaction.id}');
             },
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded, color: AppColors.expense),
-            tooltip: 'Delete',
+            tooltip: l10n.delete,
             onPressed: () async {
               final confirmed = await ConfirmDialog.show(
                 context,
-                title: 'Delete Transaction?',
-                message: 'Are you sure you want to delete this transaction of ${CurrencyFormatter.format(transaction.amount, symbol: currencySymbol)}? This action cannot be undone.',
-                confirmLabel: 'Delete',
+                title: l10n.deleteTransaction,
+                message: l10n.confirmDeleteTransaction,
+                confirmLabel: l10n.delete,
+                cancelLabel: l10n.cancel,
                 isDestructive: true,
               );
 
@@ -103,7 +106,9 @@ class TransactionDetailScreen extends ConsumerWidget {
 
                     // Category Name
                     Text(
-                      category?.name ?? 'Unknown',
+                      category != null
+                          ? l10n.getCategoryName(category.name, category.id)
+                          : l10n.none,
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -118,7 +123,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        transaction.type.displayName,
+                        l10n.getTransactionTypeName(transaction.type),
                         style: TextStyle(
                           color: typeColor,
                           fontWeight: FontWeight.w700,
@@ -144,26 +149,26 @@ class TransactionDetailScreen extends ConsumerWidget {
                     // Details Rows
                     _DetailRow(
                       icon: Icons.calendar_today_rounded,
-                      label: 'Date',
+                      label: l10n.date,
                       value: DateFormatter.formatDate(transaction.date),
                     ),
                     const SizedBox(height: 14),
                     _DetailRow(
                       icon: Icons.access_time_rounded,
-                      label: 'Time',
+                      label: l10n.time,
                       value: DateFormatter.formatTime(transaction.date),
                     ),
                     const SizedBox(height: 14),
                     _DetailRow(
                       icon: transaction.paymentMethod.icon,
-                      label: 'Payment Method',
-                      value: transaction.paymentMethod.displayName,
+                      label: l10n.paymentMethod,
+                      value: l10n.getPaymentMethodName(transaction.paymentMethod),
                     ),
                     if (transaction.note != null && transaction.note!.isNotEmpty) ...[
                       const SizedBox(height: 14),
                       _DetailRow(
                         icon: Icons.notes_rounded,
-                        label: 'Note',
+                        label: l10n.note,
                         value: transaction.note!,
                       ),
                     ],
@@ -181,7 +186,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                         context.push('/transaction/edit/${transaction.id}');
                       },
                       icon: const Icon(Icons.edit_rounded, size: 18),
-                      label: const Text('Edit'),
+                      label: Text(l10n.edit),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
@@ -196,9 +201,10 @@ class TransactionDetailScreen extends ConsumerWidget {
                       onPressed: () async {
                         final confirmed = await ConfirmDialog.show(
                           context,
-                          title: 'Delete Transaction?',
-                          message: 'Are you sure you want to delete this transaction? This action cannot be undone.',
-                          confirmLabel: 'Delete',
+                          title: l10n.deleteTransaction,
+                          message: l10n.confirmDeleteTransaction,
+                          confirmLabel: l10n.delete,
+                          cancelLabel: l10n.cancel,
                           isDestructive: true,
                         );
 
@@ -210,7 +216,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                         }
                       },
                       icon: const Icon(Icons.delete_rounded, size: 18),
-                      label: const Text('Delete'),
+                      label: Text(l10n.delete),
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.expense,
                         foregroundColor: Colors.white,

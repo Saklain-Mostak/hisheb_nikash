@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/confirm_dialog.dart';
 import '../../common_providers.dart';
@@ -16,17 +17,18 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(l10n.settings, style: const TextStyle(fontWeight: FontWeight.w700)),
       ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           children: [
             // Preferences Section
-            _SectionHeader(title: 'Preferences'),
+            _SectionHeader(title: l10n.preferences),
             AppCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -48,7 +50,7 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    title: const Text('Currency', style: TextStyle(fontWeight: FontWeight.w600)),
+                    title: Text(l10n.currency, style: const TextStyle(fontWeight: FontWeight.w600)),
                     subtitle: Text('${settings.currencyCode} (${settings.currencySymbol})'),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => _showCurrencyPicker(context, ref),
@@ -65,10 +67,27 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: const Icon(Icons.brightness_6_rounded, color: Colors.indigo, size: 20),
                     ),
-                    title: const Text('Theme', style: TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Text(_getThemeName(settings.themeModeIndex)),
+                    title: Text(l10n.theme, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text(_getThemeName(settings.themeModeIndex, l10n)),
                     trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => _showThemePicker(context, settingsNotifier, settings.themeModeIndex),
+                    onTap: () => _showThemePicker(context, settingsNotifier, settings.themeModeIndex, l10n),
+                  ),
+                  const Divider(height: 1, indent: 56),
+
+                  // Language Selector
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.language_rounded, color: Colors.purple, size: 20),
+                    ),
+                    title: Text(l10n.language, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text(_getLanguageName(settings.languageCode)),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => _showLanguagePicker(context, settingsNotifier, settings.languageCode),
                   ),
                 ],
               ),
@@ -76,7 +95,7 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // Management Section
-            _SectionHeader(title: 'Management'),
+            _SectionHeader(title: l10n.management),
             AppCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -91,8 +110,8 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: const Icon(Icons.category_rounded, color: Colors.teal, size: 20),
                     ),
-                    title: const Text('Manage Categories', style: TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Add, edit, or customize categories'),
+                    title: Text(l10n.manageCategories, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text(l10n.categories),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => context.push('/categories'),
                   ),
@@ -108,8 +127,8 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: const Icon(Icons.calendar_month_rounded, color: Colors.orange, size: 20),
                     ),
-                    title: const Text('Daily History / Calendar', style: TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Explore transactions by date'),
+                    title: Text(l10n.dailyHistory, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text(l10n.calendar),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => context.push('/calendar'),
                   ),
@@ -119,7 +138,7 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // Backup & Data Section
-            _SectionHeader(title: 'Data & Backup'),
+            _SectionHeader(title: l10n.dataAndBackup),
             AppCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -134,8 +153,8 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: const Icon(Icons.cloud_upload_outlined, color: Colors.blue, size: 20),
                     ),
-                    title: const Text('Backup Data', style: TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Save to SD card, internal storage, or share'),
+                    title: Text(l10n.backupData, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text(l10n.backupSubtitle),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => _handleBackup(context, ref),
                   ),
@@ -151,8 +170,8 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: const Icon(Icons.cloud_download_outlined, color: Colors.green, size: 20),
                     ),
-                    title: const Text('Restore Data', style: TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Restore from SD card, internal storage, or paste JSON'),
+                    title: Text(l10n.restoreData, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text(l10n.restoreSubtitle),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => _handleRestore(context, ref),
                   ),
@@ -168,18 +187,19 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: const Icon(Icons.delete_forever_rounded, color: AppColors.expense, size: 20),
                     ),
-                    title: const Text(
-                      'Clear All Data',
-                      style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.expense),
+                    title: Text(
+                      l10n.clearAllData,
+                      style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.expense),
                     ),
-                    subtitle: const Text('Delete all transactions and reset'),
+                    subtitle: Text(l10n.clearAllDataSubtitle),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () async {
                       final confirmed = await ConfirmDialog.show(
                         context,
-                        title: 'Clear All Data?',
-                        message: 'This will permanently remove all transactions, debts, custom categories, and reset all settings to default. Make sure to backup first!',
-                        confirmLabel: 'Clear Everything',
+                        title: '${l10n.clearAllData}?',
+                        message: l10n.clearAllDataSubtitle,
+                        confirmLabel: l10n.clearEverything,
+                        cancelLabel: l10n.cancel,
                         isDestructive: true,
                       );
 
@@ -187,8 +207,8 @@ class SettingsScreen extends ConsumerWidget {
                         await ref.read(settingsViewModelProvider.notifier).clearAllData();
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('All data has been cleared and reset.'),
+                            SnackBar(
+                              content: Text(l10n.clearAllDataSubtitle),
                               backgroundColor: AppColors.expense,
                             ),
                           );
@@ -202,7 +222,7 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // About Section
-            _SectionHeader(title: 'About'),
+            _SectionHeader(title: l10n.about),
             AppCard(
               padding: EdgeInsets.zero,
               child: Column(
@@ -237,8 +257,8 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    title: const Text('About Hishab Nikash', style: TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Version 1.0.0 • 100% Offline & Private'),
+                    title: Text(l10n.about, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text(l10n.aboutSubtitle),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => _showAboutDialog(context),
                   ),
@@ -252,83 +272,180 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  String _getThemeName(int index) {
+  String _getThemeName(int index, AppLocalizations l10n) {
     switch (index) {
       case 1:
-        return 'Light';
+        return l10n.themeLight;
       case 2:
-        return 'Dark';
+        return l10n.themeDark;
       default:
-        return 'System Default';
+        return l10n.themeSystem;
     }
   }
 
-  void _showCurrencyPicker(BuildContext context, WidgetRef ref) {
+  String _getLanguageName(String code) {
+    final lang = AppLocalizations.supportedLanguages.firstWhere(
+      (l) => l.code == code,
+      orElse: () => AppLocalizations.supportedLanguages.first,
+    );
+    return '${lang.nativeName} (${lang.name})';
+  }
+
+  void _showLanguagePicker(BuildContext context, SettingsNotifier notifier, String currentCode) {
+    final l10n = context.l10n;
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(18),
-                child: Text(
-                  'Select Currency',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
+                  child: Text(
+                    l10n.selectLanguage,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: AppConstants.supportedCurrencies.length,
-                  itemBuilder: (context, index) {
-                    final curr = AppConstants.supportedCurrencies[index];
-                    return ListTile(
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
+                const Divider(height: 1),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: AppLocalizations.supportedLanguages.length,
+                    itemBuilder: (context, index) {
+                      final lang = AppLocalizations.supportedLanguages[index];
+                      final isSelected = lang.code == currentCode;
+                      return ListTile(
+                        leading: Container(
+                          width: 42,
+                          height: 42,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: (isSelected ? AppColors.primary : Colors.purple).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            lang.code.toUpperCase(),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                              color: isSelected ? AppColors.primary : Colors.purple,
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          curr.symbol,
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                        title: Text(
+                          lang.nativeName,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                            color: isSelected ? AppColors.primary : null,
+                          ),
                         ),
-                      ),
-                      title: Text(curr.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      trailing: Text(curr.code, style: const TextStyle(fontWeight: FontWeight.w700)),
-                      onTap: () {
-                        ref.read(settingsProvider.notifier).updateCurrency(curr.code, curr.symbol);
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
+                        subtitle: Text(lang.name),
+                        trailing: isSelected
+                            ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                            : null,
+                        onTap: () {
+                          notifier.updateLanguage(lang.code);
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  void _showThemePicker(BuildContext context, SettingsNotifier notifier, int currentMode) {
+  void _showCurrencyPicker(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
+                  child: Text(
+                    l10n.selectCurrency,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const Divider(height: 1),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: AppConstants.supportedCurrencies.length,
+                    itemBuilder: (context, index) {
+                      final curr = AppConstants.supportedCurrencies[index];
+                      return ListTile(
+                        leading: Container(
+                          width: 40,
+                          height: 40,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            curr.symbol,
+                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                          ),
+                        ),
+                        title: Text(curr.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        trailing: Text(curr.code, style: const TextStyle(fontWeight: FontWeight.w700)),
+                        onTap: () {
+                          ref.read(settingsProvider.notifier).updateCurrency(curr.code, curr.symbol);
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showThemePicker(BuildContext context, SettingsNotifier notifier, int currentMode, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select Theme', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(l10n.selectTheme, style: const TextStyle(fontWeight: FontWeight.bold)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('System Default'),
+              title: Text(l10n.themeSystem),
               leading: Icon(
                 currentMode == 0 ? Icons.radio_button_checked : Icons.radio_button_off,
                 color: currentMode == 0 ? AppColors.primary : null,
@@ -339,7 +456,7 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              title: const Text('Light'),
+              title: Text(l10n.themeLight),
               leading: Icon(
                 currentMode == 1 ? Icons.radio_button_checked : Icons.radio_button_off,
                 color: currentMode == 1 ? AppColors.primary : null,
@@ -350,7 +467,7 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              title: const Text('Dark'),
+              title: Text(l10n.themeDark),
               leading: Icon(
                 currentMode == 2 ? Icons.radio_button_checked : Icons.radio_button_off,
                 color: currentMode == 2 ? AppColors.primary : null,
@@ -369,9 +486,11 @@ class SettingsScreen extends ConsumerWidget {
   Future<void> _handleBackup(BuildContext context, WidgetRef ref) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final l10n = context.l10n;
     final choice = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -410,17 +529,17 @@ class SettingsScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Export & Backup Data',
+                          l10n.backupData,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Where would you like to save your backup?',
+                          l10n.backupSubtitle,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: isDark
-                                    ? AppColors.darkTextSecondary
+                                     ? AppColors.darkTextSecondary
                                     : AppColors.lightTextSecondary,
                               ),
                         ),
@@ -434,8 +553,8 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.sd_card_rounded,
                 iconColor: Colors.blue,
-                title: 'Download to Storage / SD Card',
-                subtitle: 'Choose folder in SD Card or Internal Storage',
+                title: l10n.downloadToStorage,
+                subtitle: l10n.downloadToStorageSubtitle,
                 onTap: () => Navigator.pop(context, 'storage'),
               ),
               const SizedBox(height: 10),
@@ -443,8 +562,8 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.share_rounded,
                 iconColor: Colors.indigo,
-                title: 'Share via Apps',
-                subtitle: 'Send JSON file via WhatsApp, Drive, Email, etc.',
+                title: l10n.shareViaApps,
+                subtitle: l10n.shareViaAppsSubtitle,
                 onTap: () => Navigator.pop(context, 'share'),
               ),
               const SizedBox(height: 10),
@@ -452,8 +571,8 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.copy_rounded,
                 iconColor: Colors.teal,
-                title: 'Copy JSON to Clipboard',
-                subtitle: 'Directly copy raw backup content',
+                title: l10n.copyJson,
+                subtitle: l10n.copyJsonSubtitle,
                 onTap: () => Navigator.pop(context, 'copy'),
               ),
             ],
@@ -495,8 +614,8 @@ class SettingsScreen extends ConsumerWidget {
         final success = await ref.read(settingsViewModelProvider.notifier).shareBackup();
         if (success && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Backup ready for sharing.'),
+            SnackBar(
+              content: Text(l10n.backupReady),
               backgroundColor: AppColors.income,
             ),
           );
@@ -516,8 +635,8 @@ class SettingsScreen extends ConsumerWidget {
       await Clipboard.setData(ClipboardData(text: json));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Backup JSON copied to clipboard.'),
+          SnackBar(
+            content: Text(l10n.copyJson),
             backgroundColor: AppColors.income,
           ),
         );
@@ -585,9 +704,11 @@ class SettingsScreen extends ConsumerWidget {
   Future<void> _handleRestore(BuildContext context, WidgetRef ref) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final l10n = context.l10n;
     final choice = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -626,14 +747,14 @@ class SettingsScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Restore Backup Data',
+                          l10n.restoreData,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Select your backup file from storage or paste JSON',
+                          l10n.restoreSubtitle,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: isDark
                                     ? AppColors.darkTextSecondary
@@ -650,8 +771,8 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.sd_card_rounded,
                 iconColor: Colors.green,
-                title: 'Select Backup File (SD Card / Storage)',
-                subtitle: 'Choose .json backup file from SD Card or Internal Storage',
+                title: l10n.selectBackupFile,
+                subtitle: l10n.selectBackupFileSubtitle,
                 onTap: () => Navigator.pop(context, 'file'),
               ),
               const SizedBox(height: 10),
@@ -659,8 +780,8 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.paste_rounded,
                 iconColor: AppColors.secondary,
-                title: 'Paste JSON Content',
-                subtitle: 'Paste backup text directly if copied to clipboard',
+                title: l10n.pasteJsonContent,
+                subtitle: l10n.pasteJsonContentSubtitle,
                 onTap: () => Navigator.pop(context, 'text'),
               ),
             ],
@@ -697,22 +818,22 @@ class SettingsScreen extends ConsumerWidget {
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Paste JSON Backup'),
+          title: Text(l10n.pasteJsonContent),
           content: TextField(
             controller: textController,
             maxLines: 8,
-            decoration: const InputDecoration(
-              hintText: 'Paste backup JSON here...',
+            decoration: InputDecoration(
+              hintText: l10n.pasteJsonContentSubtitle,
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Restore'),
+              child: Text(l10n.restoreData),
             ),
           ],
         ),
@@ -830,7 +951,7 @@ class SettingsScreen extends ConsumerWidget {
             style: FilledButton.styleFrom(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('Close'),
+            child: Text(context.l10n.close),
           ),
         ],
       ),

@@ -70,6 +70,13 @@ class SettingsNotifier extends Notifier<SettingsModel> {
     await repo.updateSettings(updated);
     state = updated;
   }
+
+  Future<void> updateLanguage(String languageCode) async {
+    final repo = ref.read(settingsRepositoryProvider);
+    final updated = state.copyWith(languageCode: languageCode);
+    await repo.updateSettings(updated);
+    state = updated;
+  }
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsModel>(SettingsNotifier.new);
@@ -80,6 +87,11 @@ final currencySymbolProvider = Provider<String>((ref) {
 
 final themeModeProvider = Provider<ThemeMode>((ref) {
   return ref.watch(settingsProvider).themeMode;
+});
+
+final appLocaleProvider = Provider<Locale>((ref) {
+  final languageCode = ref.watch(settingsProvider).languageCode;
+  return Locale(languageCode);
 });
 
 // Stream Providers for reactive Hive updates

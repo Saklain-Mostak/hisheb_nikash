@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../common_providers.dart';
@@ -15,6 +16,7 @@ class BalanceCard extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final currencySymbol = ref.watch(currencySymbolProvider);
     final state = ref.watch(dashboardViewModelProvider);
+    final l10n = context.l10n;
 
     return Column(
       children: [
@@ -46,7 +48,7 @@ class BalanceCard extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Today's Balance",
+                    l10n.totalBalance,
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.85),
                       fontWeight: FontWeight.w500,
@@ -60,7 +62,7 @@ class BalanceCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'Today',
+                      l10n.today,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -115,7 +117,7 @@ class BalanceCard extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Income',
+                                  l10n.filterIncome,
                                   style: TextStyle(
                                     color: Colors.white.withValues(alpha: 0.75),
                                     fontSize: 11,
@@ -172,7 +174,7 @@ class BalanceCard extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Expense',
+                                    l10n.filterExpense,
                                     style: TextStyle(
                                       color: Colors.white.withValues(alpha: 0.75),
                                       fontSize: 11,
@@ -226,18 +228,23 @@ class BalanceCard extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'This Month',
+                        l10n.thisMonth,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
                   ),
-                  Text(
-                    'Balance: ${CurrencyFormatter.format(state.monthBalance, symbol: currencySymbol)}',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: state.monthBalance >= 0 ? AppColors.income : AppColors.expense,
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      '${l10n.netBalance}: ${CurrencyFormatter.format(state.monthBalance, symbol: currencySymbol)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: state.monthBalance >= 0 ? AppColors.income : AppColors.expense,
+                      ),
                     ),
                   ),
                 ],
@@ -263,7 +270,7 @@ class BalanceCard extends ConsumerWidget {
                                   size: 14, color: AppColors.income),
                               const SizedBox(width: 4),
                               Text(
-                                'Income',
+                                l10n.filterIncome,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: isDark ? AppColors.darkTextSecondary : AppColors.incomeTextDark,
@@ -307,7 +314,7 @@ class BalanceCard extends ConsumerWidget {
                                   size: 14, color: AppColors.expense),
                               const SizedBox(width: 4),
                               Text(
-                                'Expense',
+                                l10n.filterExpense,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: isDark ? AppColors.darkTextSecondary : AppColors.expenseTextDark,
