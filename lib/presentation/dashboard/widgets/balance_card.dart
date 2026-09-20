@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/widgets/app_card.dart';
@@ -14,7 +15,9 @@ class BalanceCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final currencySymbol = ref.watch(currencySymbolProvider);
+    final settings = ref.watch(settingsProvider);
+    final currencySymbol = settings.currencySymbol;
+    final currencyInfo = AppConstants.getCurrency(settings.currencyCode);
     final state = ref.watch(dashboardViewModelProvider);
     final l10n = context.l10n;
 
@@ -71,17 +74,43 @@ class BalanceCard extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                CurrencyFormatter.format(
-                  state.todayBalance,
-                  symbol: currencySymbol,
-                ),
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 32,
-                  letterSpacing: -0.5,
+              const SizedBox(height: 12),
+              // Today Balance with Currency Icon/Badge and dynamic position
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (state.todayBalance < 0) ...[
+                      Text(
+                        '- ',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 32,
+                        ),
+                      ),
+                    ],
+                    if (currencyInfo.isPrefix) ...[
+                      _CurrencyBadge(currency: currencyInfo),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      CurrencyFormatter.formatNumber(state.todayBalance),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 32,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    if (!currencyInfo.isPrefix) ...[
+                      const SizedBox(width: 8),
+                      _CurrencyBadge(currency: currencyInfo),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(height: 20),
@@ -345,6 +374,52 @@ class BalanceCard extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _CurrencyBadge extends StatelessWidget {
+  final CurrencyInfo currency;
+
+  const _CurrencyBadge({required this.currency});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 32,
+      constraints: const BoxConstraints(minWidth: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.20),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: currency.icon != null
+          ? Icon(
+              currency.icon,
+              size: 20,
+              color: Colors.white,
+            )
+          : Text(
+              currency.symbol,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                height: 1.1,
+              ),
+            ),
     );
   }
 }
